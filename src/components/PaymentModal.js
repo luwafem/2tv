@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { db } from '@/lib/firebase'
 import { collection, addDoc } from 'firebase/firestore'
 import { generateUserUrl, getExpirationDate, isValidEmail } from '@/lib/utils.js'
@@ -52,6 +52,104 @@ export default function PaymentModal({ plan, onClose, onError }) {
       })
   }, [])
 
+  // Define callback functions using useCallback to ensure they're stable
+  const paymentCallback = useCallback(async (response) => {
+    console.log('Payment callback received:', response) // Debug log
+    setLoading(true)
+    
+    try {
+      // Generate unique URL for user
+      const userUrl = generateUserUrl(email, plan.id)
+      const expirationDate = getExpirationDate()
+
+      // Save subscription to Firebase
+      const subscriptionData = {
+        email: email,
+        planId: plan.id,
+        planName: plan.name,
+        amount: plan.price,
+        paymentRef: response.reference,
+        userUrl: userUrl,
+        expirationDate: expirationDate,
+        createdAt: new Date(),
+        status: 'active',
+        paystackResponse: response
+      }
+
+      console.log('Saving to Firebase:', subscriptionData) // Debug log
+      await addDoc(collection(db, 'subscriptions'), subscriptionData)
+
+      // Send confirmation email via Formspree
+      const emailData = {
+        email: email,
+        subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
+        message: `Thank you for subscribing to 2TV ${plan.name} Plan!
+        
+Your IPTV Access Details:
+- Plan: ${plan.name}
+- Amount Paid: ₦${plan.price.toLocaleString()}
+- Payment Reference: ${response.reference}
+- Your Streaming URL: ${userUrl}
+- Expires: ${expirationDate.toLocaleDateString()}
+
+Download IPTV Players:
+- VLC Player: https://www.videolan.org/vlc/
+- IPTV Smarters: Available on App Store/Google Play
+- TiviMate: Available on Google Play
+- Perfect Player: Available on App Store/Google Play
+
+Setup Instructions:
+1. Download any of the IPTV players above
+2. Open the app and add a new playlist
+3. Enter your streaming URL: ${userUrl}
+4. Start enjoying your IPTV service!
+
+Thank you for choosing 2TV!`
+      }
+
+      console.log('Sending email via Formspree...') // Debug log
+      const emailResponse = await fetch('https://formspree.io/f/xblkzybg', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(emailData)
+      })
+
+      if (emailResponse.ok) {
+        console.log('Email sent successfully') // Debug log
+      } else {
+        console.error('Email sending failed:', emailResponse.status) // Debug log
+      }
+
+      // Show success message with streaming URL
+      alert(`🎉 Payment Successful!
+
+Your IPTV access is now active!
+
+Streaming URL: ${userUrl}
+Plan: ${plan.name}
+Expires: ${expirationDate.toLocaleDateString()}
+
+Check your email for detailed setup instructions.`)
+      
+      onClose()
+    } catch (error) {
+      console.error('Error processing payment:', error)
+      alert(`Payment was successful, but there was an error setting up your account. 
+
+Payment Reference: ${response.reference}
+Please contact support with this reference number.`)
+    } finally {
+      setLoading(false)
+    }
+  }, [email, plan, onClose])
+
+  const closeCallback = useCallback(() => {
+    console.log('Payment modal closed') // Debug log
+    setLoading(false)
+  }, [])
+
   const handlePayment = async () => {
     if (!email || !isValidEmail(email)) {
       setError('Please enter a valid email address')
@@ -77,100 +175,6 @@ export default function PaymentModal({ plan, onClose, onError }) {
       const paymentRef = `2tv_${plan.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
       console.log('Payment details:', { email, amount: plan.price * 100, ref: paymentRef }) // Debug log
-
-      // Define callback function separately to avoid scope issues
-      const paymentCallback = async (response) => {
-        console.log('Payment callback received:', response) // Debug log
-        setLoading(true)
-        
-        try {
-          // Save subscription to Firebase
-          const subscriptionData = {
-            email: email,
-            planId: plan.id,
-            planName: plan.name,
-            amount: plan.price,
-            paymentRef: response.reference,
-            userUrl: userUrl,
-            expirationDate: expirationDate,
-            createdAt: new Date(),
-            status: 'active',
-            paystackResponse: response
-          }
-
-          console.log('Saving to Firebase:', subscriptionData) // Debug log
-          await addDoc(collection(db, 'subscriptions'), subscriptionData)
-
-          // Send confirmation email via Formspree
-          const emailData = {
-            email: email,
-            subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
-            message: `Thank you for subscribing to 2TV ${plan.name} Plan!
-            
-Your IPTV Access Details:
-- Plan: ${plan.name}
-- Amount Paid: ₦${plan.price.toLocaleString()}
-- Payment Reference: ${response.reference}
-- Your Streaming URL: ${userUrl}
-- Expires: ${expirationDate.toLocaleDateString()}
-
-Download IPTV Players:
-- VLC Player: https://www.videolan.org/vlc/
-- IPTV Smarters: Available on App Store/Google Play
-- TiviMate: Available on Google Play
-- Perfect Player: Available on App Store/Google Play
-
-Setup Instructions:
-1. Download any of the IPTV players above
-2. Open the app and add a new playlist
-3. Enter your streaming URL: ${userUrl}
-4. Start enjoying your IPTV service!
-
-Thank you for choosing 2TV!`
-          }
-
-          console.log('Sending email via Formspree...') // Debug log
-          const emailResponse = await fetch('https://formspree.io/f/xblkzybg', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(emailData)
-          })
-
-          if (emailResponse.ok) {
-            console.log('Email sent successfully') // Debug log
-          } else {
-            console.error('Email sending failed:', emailResponse.status) // Debug log
-          }
-
-          // Show success message with streaming URL
-          alert(`🎉 Payment Successful!
-
-Your IPTV access is now active!
-
-Streaming URL: ${userUrl}
-Plan: ${plan.name}
-Expires: ${expirationDate.toLocaleDateString()}
-
-Check your email for detailed setup instructions.`)
-          
-          onClose()
-        } catch (error) {
-          console.error('Error processing payment:', error)
-          alert(`Payment was successful, but there was an error setting up your account. 
-
-Payment Reference: ${response.reference}
-Please contact support with this reference number.`)
-        } finally {
-          setLoading(false)
-        }
-      }
-
-      const closeCallback = () => {
-        console.log('Payment modal closed') // Debug log
-        setLoading(false)
-      }
 
       // Initialize Paystack payment
       const handler = window.PaystackPop.setup({
