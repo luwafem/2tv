@@ -35,13 +35,13 @@ export default function Features() {
   ]
 
   return (
-    <section id="features" className="py-20 px-4 bg-gray-900">
+    <section id="features" className="py-20 px-4 bg-gray-100">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black">
             Why Choose 2TV?
           </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             We provide the best IPTV experience with cutting-edge technology and premium content
           </p>
         </div>
@@ -50,33 +50,33 @@ export default function Features() {
           {features.map((feature, index) => (
             <div 
               key={index}
-              className="bg-black p-8 rounded-xl border border-gray-800 hover:border-gray-600 transition-colors"
+              className="bg-white p-8 rounded-xl border border-gray-200 hover:border-gray-400 transition-colors shadow-sm"
             >
               <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-gray-400">{feature.description}</p>
+              <h3 className="text-xl font-semibold mb-3 text-black">{feature.title}</h3>
+              <p className="text-gray-600">{feature.description}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold mb-8">Compatible IPTV Players</h3>
+          <h3 className="text-2xl font-bold mb-8 text-black">Compatible IPTV Players</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-black p-6 rounded-lg border border-gray-800">
-              <h4 className="font-semibold">VLC Player</h4>
-              <p className="text-sm text-gray-400 mt-2">Free & Cross-platform</p>
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-black">VLC Player</h4>
+              <p className="text-sm text-gray-600 mt-2">Free & Cross-platform</p>
             </div>
-            <div className="bg-black p-6 rounded-lg border border-gray-800">
-              <h4 className="font-semibold">IPTV Smarters</h4>
-              <p className="text-sm text-gray-400 mt-2">Mobile & Smart TV</p>
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-black">IPTV Smarters</h4>
+              <p className="text-sm text-gray-600 mt-2">Mobile & Smart TV</p>
             </div>
-            <div className="bg-black p-6 rounded-lg border border-gray-800">
-              <h4 className="font-semibold">TiviMate</h4>
-              <p className="text-sm text-gray-400 mt-2">Android TV</p>
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-black">TiviMate</h4>
+              <p className="text-sm text-gray-600 mt-2">Android TV</p>
             </div>
-            <div className="bg-black p-6 rounded-lg border border-gray-800">
-              <h4 className="font-semibold">Perfect Player</h4>
-              <p className="text-sm text-gray-400 mt-2">Android & iOS</p>
+            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+              <h4 className="font-semibold text-black">Perfect Player</h4>
+              <p className="text-sm text-gray-600 mt-2">Android & iOS</p>
             </div>
           </div>
         </div>

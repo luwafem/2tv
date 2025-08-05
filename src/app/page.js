@@ -17,7 +17,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-white text-black">
       <Hero />
       <Features />
       <PricingPlans onPlanSelect={handlePlanSelect} />

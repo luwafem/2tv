@@ -7,11 +7,13 @@ export function cn(...inputs) {
 
 // Generate unique user URL based on email and plan
 export function generateUserUrl(email, planType) {
-  const baseUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://your-domain.com' 
+  const baseUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
     : 'http://localhost:8000';
   
-  const hash = btoa(email + planType + Date.now()).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+  // Use a more stable hash generation without Date.now() for SSR compatibility
+  const timestamp = typeof window !== 'undefined' ? Date.now() : 0;
+  const hash = btoa(email + planType + timestamp).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
   return `${baseUrl}/stream/${hash}`;
 }
 
