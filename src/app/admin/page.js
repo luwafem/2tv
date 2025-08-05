@@ -69,16 +69,16 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-white text-black flex items-center justify-center">
         <div className="text-xl">Loading admin dashboard...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white text-black">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">2TV Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-8 text-black">2TV Admin Dashboard</h1>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-4 mb-8">
@@ -86,8 +86,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('subscriptions')}
             className={`px-6 py-3 rounded-lg font-semibold ${
               activeTab === 'subscriptions' 
-                ? 'bg-white text-black' 
-                : 'bg-gray-800 text-white hover:bg-gray-700'
+                ? 'bg-black text-white' 
+                : 'bg-gray-200 text-black hover:bg-gray-300'
             }`}
           >
             Subscriptions ({subscriptions.length})
@@ -96,8 +96,8 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab('settings')}
             className={`px-6 py-3 rounded-lg font-semibold ${
               activeTab === 'settings' 
-                ? 'bg-white text-black' 
-                : 'bg-gray-800 text-white hover:bg-gray-700'
+                ? 'bg-black text-white' 
+                : 'bg-gray-200 text-black hover:bg-gray-300'
             }`}
           >
             Settings
@@ -108,67 +108,67 @@ export default function AdminDashboard() {
         {activeTab === 'subscriptions' && (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-semibold mb-2">Total Subscriptions</h3>
-                <p className="text-3xl font-bold">{subscriptions.length}</p>
+              <div className="bg-gray-100 p-6 rounded-lg border border-gray-300">
+                <h3 className="text-lg font-semibold mb-2 text-black">Total Subscriptions</h3>
+                <p className="text-3xl font-bold text-black">{subscriptions.length}</p>
               </div>
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-semibold mb-2">Active</h3>
-                <p className="text-3xl font-bold text-green-400">
+              <div className="bg-gray-100 p-6 rounded-lg border border-gray-300">
+                <h3 className="text-lg font-semibold mb-2 text-black">Active</h3>
+                <p className="text-3xl font-bold text-green-600">
                   {subscriptions.filter(sub => sub.status === 'active' && !isExpired(sub.expirationDate)).length}
                 </p>
               </div>
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-semibold mb-2">Expired</h3>
-                <p className="text-3xl font-bold text-red-400">
+              <div className="bg-gray-100 p-6 rounded-lg border border-gray-300">
+                <h3 className="text-lg font-semibold mb-2 text-black">Expired</h3>
+                <p className="text-3xl font-bold text-red-600">
                   {subscriptions.filter(sub => isExpired(sub.expirationDate)).length}
                 </p>
               </div>
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-semibold mb-2">Total Revenue</h3>
-                <p className="text-3xl font-bold text-green-400">
+              <div className="bg-gray-100 p-6 rounded-lg border border-gray-300">
+                <h3 className="text-lg font-semibold mb-2 text-black">Total Revenue</h3>
+                <p className="text-3xl font-bold text-green-600">
                   ₦{subscriptions.reduce((total, sub) => total + (sub.amount || 0), 0).toLocaleString()}
                 </p>
               </div>
             </div>
 
-            <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
+            <div className="bg-gray-100 rounded-lg border border-gray-300 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-800">
+                  <thead className="bg-gray-200">
                     <tr>
-                      <th className="px-6 py-4 text-left">Email</th>
-                      <th className="px-6 py-4 text-left">Plan</th>
-                      <th className="px-6 py-4 text-left">Amount</th>
-                      <th className="px-6 py-4 text-left">Created</th>
-                      <th className="px-6 py-4 text-left">Expires</th>
-                      <th className="px-6 py-4 text-left">Status</th>
-                      <th className="px-6 py-4 text-left">Actions</th>
+                      <th className="px-6 py-4 text-left text-black">Email</th>
+                      <th className="px-6 py-4 text-left text-black">Plan</th>
+                      <th className="px-6 py-4 text-left text-black">Amount</th>
+                      <th className="px-6 py-4 text-left text-black">Created</th>
+                      <th className="px-6 py-4 text-left text-black">Expires</th>
+                      <th className="px-6 py-4 text-left text-black">Status</th>
+                      <th className="px-6 py-4 text-left text-black">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {subscriptions.map((sub) => (
-                      <tr key={sub.id} className="border-t border-gray-800">
-                        <td className="px-6 py-4">{sub.email}</td>
+                      <tr key={sub.id} className="border-t border-gray-300">
+                        <td className="px-6 py-4 text-black">{sub.email}</td>
                         <td className="px-6 py-4">
-                          <span className="bg-gray-800 px-2 py-1 rounded text-sm">
+                          <span className="bg-gray-200 px-2 py-1 rounded text-sm text-black">
                             {sub.planName}
                           </span>
                         </td>
-                        <td className="px-6 py-4">₦{sub.amount?.toLocaleString()}</td>
-                        <td className="px-6 py-4">{formatDate(sub.createdAt)}</td>
+                        <td className="px-6 py-4 text-black">₦{sub.amount?.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-black">{formatDate(sub.createdAt)}</td>
                         <td className="px-6 py-4">
-                          <span className={isExpired(sub.expirationDate) ? 'text-red-400' : 'text-green-400'}>
+                          <span className={isExpired(sub.expirationDate) ? 'text-red-600' : 'text-green-600'}>
                             {formatDate(sub.expirationDate)}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded text-sm ${
                             isExpired(sub.expirationDate) 
-                              ? 'bg-red-900 text-red-300' 
+                              ? 'bg-red-100 text-red-700' 
                               : sub.status === 'active' 
-                                ? 'bg-green-900 text-green-300'
-                                : 'bg-gray-800 text-gray-300'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-200 text-gray-700'
                           }`}>
                             {isExpired(sub.expirationDate) ? 'Expired' : sub.status}
                           </span>
@@ -177,13 +177,13 @@ export default function AdminDashboard() {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => updateSubscriptionStatus(sub.id, sub.status === 'active' ? 'suspended' : 'active')}
-                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white"
                             >
                               {sub.status === 'active' ? 'Suspend' : 'Activate'}
                             </button>
                             <button
                               onClick={() => deleteSubscription(sub.id)}
-                              className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm"
+                              className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm text-white"
                             >
                               Delete
                             </button>
@@ -201,73 +201,73 @@ export default function AdminDashboard() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-8">
-            <div className="bg-gray-900 p-8 rounded-lg border border-gray-800">
-              <h3 className="text-xl font-semibold mb-6">IPTV Server URLs</h3>
+            <div className="bg-gray-100 p-8 rounded-lg border border-gray-300">
+              <h3 className="text-xl font-semibold mb-6 text-black">IPTV Server URLs</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Basic Plan URL</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Basic Plan URL</label>
                   <input
                     type="url"
                     value={settings.basicUrl}
                     onChange={(e) => setSettings({...settings, basicUrl: e.target.value})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Premium Plan URL</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Premium Plan URL</label>
                   <input
                     type="url"
                     value={settings.premiumUrl}
                     onChange={(e) => setSettings({...settings, premiumUrl: e.target.value})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Ultimate Plan URL</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Ultimate Plan URL</label>
                   <input
                     type="url"
                     value={settings.ultimateUrl}
                     onChange={(e) => setSettings({...settings, ultimateUrl: e.target.value})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-900 p-8 rounded-lg border border-gray-800">
-              <h3 className="text-xl font-semibold mb-6">Pricing Settings</h3>
+            <div className="bg-gray-100 p-8 rounded-lg border border-gray-300">
+              <h3 className="text-xl font-semibold mb-6 text-black">Pricing Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Basic Plan Price (₦)</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Basic Plan Price (₦)</label>
                   <input
                     type="number"
                     value={settings.basicPrice}
                     onChange={(e) => setSettings({...settings, basicPrice: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Premium Plan Price (₦)</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Premium Plan Price (₦)</label>
                   <input
                     type="number"
                     value={settings.premiumPrice}
                     onChange={(e) => setSettings({...settings, premiumPrice: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Ultimate Plan Price (₦)</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Ultimate Plan Price (₦)</label>
                   <input
                     type="number"
                     value={settings.ultimatePrice}
                     onChange={(e) => setSettings({...settings, ultimatePrice: parseInt(e.target.value)})}
-                    className="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-white focus:outline-none"
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:border-black focus:outline-none text-black"
                   />
                 </div>
               </div>
             </div>
 
-            <button className="bg-white text-black px-8 py-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+            <button className="bg-black text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
               Save Settings
             </button>
           </div>

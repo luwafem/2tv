@@ -182,10 +182,10 @@ export default function PaymentModal({ plan, onClose }) {
 
         <button
           onClick={handlePayment}
-          disabled={loading || !email}
+          disabled={loading || !email || !paystackLoaded}
           className="w-full bg-black text-white py-4 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Processing...' : `Pay ₦${plan.price.toLocaleString()}`}
+          {loading ? 'Processing...' : !paystackLoaded ? 'Loading Payment...' : `Pay ₦${plan.price.toLocaleString()}`}
         </button>
 
         <p className="text-xs text-gray-600 text-center mt-4">
