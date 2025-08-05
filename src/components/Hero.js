@@ -3,7 +3,7 @@
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center bg-white">
-      <div className="absolute inset-0 bg-[url('https://placehold.co/1920x1080?text=Premium+IPTV+Streaming+Background')] bg-cover bg-center opacity-10"></div>
+      <div className="absolute inset-0 bg-[url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/bdf21c09-8eb6-4516-8eac-b34ca5a635ae.png')] bg-cover bg-center opacity-10"></div>
       
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-black to-gray-800 bg-clip-text text-transparent">

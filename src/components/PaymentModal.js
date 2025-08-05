@@ -13,25 +13,43 @@ export default function PaymentModal({ plan, onClose }) {
 
   useEffect(() => {
     // Check if Paystack is already loaded
-    if (window.PaystackPop) {
+    if (typeof window !== 'undefined' && window.PaystackPop) {
       setPaystackLoaded(true)
       return
     }
 
     // Load Paystack script dynamically
-    const script = document.createElement('script')
-    script.src = 'https://js.paystack.co/v1/inline.js'
-    script.async = true
-    script.onload = () => setPaystackLoaded(true)
-    script.onerror = () => setError('Failed to load payment system')
-    document.body.appendChild(script)
+    const loadPaystack = () => {
+      return new Promise((resolve, reject) => {
+        // Check if script already exists
+        const existingScript = document.querySelector('script[src="https://js.paystack.co/v1/inline.js"]')
+        if (existingScript) {
+          if (window.PaystackPop) {
+            resolve()
+          } else {
+            existingScript.onload = resolve
+            existingScript.onerror = reject
+          }
+          return
+        }
 
-    return () => {
-      // Cleanup script if component unmounts
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
-      }
+        const script = document.createElement('script')
+        script.src = 'https://js.paystack.co/v1/inline.js'
+        script.async = true
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
     }
+
+    loadPaystack()
+      .then(() => {
+        setPaystackLoaded(true)
+        setError('')
+      })
+      .catch(() => {
+        setError('Failed to load payment system. Please refresh and try again.')
+      })
   }, [])
 
   const handlePayment = async () => {
@@ -46,14 +64,19 @@ export default function PaymentModal({ plan, onClose }) {
     try {
       // Check if Paystack is loaded
       if (!paystackLoaded || typeof window === 'undefined' || !window.PaystackPop) {
-        setError('Payment system is loading. Please try again in a moment.')
+        setError('Payment system is still loading. Please wait a moment and try again.')
         setLoading(false)
         return
       }
 
+      console.log('Initializing Paystack payment...') // Debug log
+
       // Generate unique URL for user
       const userUrl = generateUserUrl(email, plan.id)
       const expirationDate = getExpirationDate()
+      const paymentRef = `2tv_${plan.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+      console.log('Payment details:', { email, amount: plan.price * 100, ref: paymentRef }) // Debug log
 
       // Initialize Paystack payment
       const handler = window.PaystackPop.setup({
@@ -61,18 +84,27 @@ export default function PaymentModal({ plan, onClose }) {
         email: email,
         amount: plan.price * 100, // Paystack expects amount in kobo
         currency: 'NGN',
-        ref: `2tv_${plan.id}_${Date.now()}`,
+        ref: paymentRef,
         metadata: {
           plan_id: plan.id,
           plan_name: plan.name,
           user_url: userUrl,
-          expiration_date: expirationDate.toISOString()
+          expiration_date: expirationDate.toISOString(),
+          custom_fields: [
+            {
+              display_name: "Plan Type",
+              variable_name: "plan_type",
+              value: plan.name
+            }
+          ]
         },
         callback: async function(response) {
-          // Payment successful
+          console.log('Payment callback received:', response) // Debug log
+          setLoading(true)
+          
           try {
             // Save subscription to Firebase
-            await addDoc(collection(db, 'subscriptions'), {
+            const subscriptionData = {
               email: email,
               planId: plan.id,
               planName: plan.name,
@@ -81,55 +113,89 @@ export default function PaymentModal({ plan, onClose }) {
               userUrl: userUrl,
               expirationDate: expirationDate,
               createdAt: new Date(),
-              status: 'active'
-            })
+              status: 'active',
+              paystackResponse: response
+            }
+
+            console.log('Saving to Firebase:', subscriptionData) // Debug log
+            await addDoc(collection(db, 'subscriptions'), subscriptionData)
 
             // Send confirmation email via Formspree
-            await fetch('https://formspree.io/f/xblkzybg', {
+            const emailData = {
+              email: email,
+              subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
+              message: `Thank you for subscribing to 2TV ${plan.name} Plan!
+              
+Your IPTV Access Details:
+- Plan: ${plan.name}
+- Amount Paid: ₦${plan.price.toLocaleString()}
+- Payment Reference: ${response.reference}
+- Your Streaming URL: ${userUrl}
+- Expires: ${expirationDate.toLocaleDateString()}
+
+Download IPTV Players:
+- VLC Player: https://www.videolan.org/vlc/
+- IPTV Smarters: Available on App Store/Google Play
+- TiviMate: Available on Google Play
+- Perfect Player: Available on App Store/Google Play
+
+Setup Instructions:
+1. Download any of the IPTV players above
+2. Open the app and add a new playlist
+3. Enter your streaming URL: ${userUrl}
+4. Start enjoying your IPTV service!
+
+Thank you for choosing 2TV!`
+            }
+
+            console.log('Sending email via Formspree...') // Debug log
+            const emailResponse = await fetch('https://formspree.io/f/xblkzybg', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({
-                email: email,
-                subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
-                message: `
-                  Thank you for subscribing to 2TV ${plan.name} Plan!
-                  
-                  Your IPTV Access Details:
-                  - Plan: ${plan.name}
-                  - Amount Paid: ₦${plan.price.toLocaleString()}
-                  - Your Streaming URL: ${userUrl}
-                  - Expires: ${expirationDate.toLocaleDateString()}
-                  
-                  Download IPTV Players:
-                  - VLC Player: https://www.videolan.org/vlc/
-                  - IPTV Smarters: Available on App Store/Google Play
-                  - TiviMate: Available on Google Play
-                  - Perfect Player: Available on App Store/Google Play
-                  
-                  Setup Instructions will be sent to you shortly.
-                  
-                  Thank you for choosing 2TV!
-                `
-              })
+              body: JSON.stringify(emailData)
             })
 
-            alert(`Payment successful! Your streaming URL: ${userUrl}`)
+            if (emailResponse.ok) {
+              console.log('Email sent successfully') // Debug log
+            } else {
+              console.error('Email sending failed:', emailResponse.status) // Debug log
+            }
+
+            // Show success message with streaming URL
+            alert(`🎉 Payment Successful!
+
+Your IPTV access is now active!
+
+Streaming URL: ${userUrl}
+Plan: ${plan.name}
+Expires: ${expirationDate.toLocaleDateString()}
+
+Check your email for detailed setup instructions.`)
+            
             onClose()
           } catch (error) {
-            console.error('Error saving subscription:', error)
-            alert('Payment successful but there was an error. Please contact support.')
+            console.error('Error processing payment:', error)
+            alert(`Payment was successful, but there was an error setting up your account. 
+
+Payment Reference: ${response.reference}
+Please contact support with this reference number.`)
+          } finally {
+            setLoading(false)
           }
         },
         onClose: function() {
+          console.log('Payment modal closed') // Debug log
           setLoading(false)
         }
       })
 
+      console.log('Opening Paystack iframe...') // Debug log
       handler.openIframe()
     } catch (error) {
-      setError('Payment initialization failed. Please try again.')
+      console.error('Payment initialization error:', error)
+      setError(`Payment initialization failed: ${error.message}. Please refresh the page and try again.`)
       setLoading(false)
     }
   }
