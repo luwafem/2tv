@@ -78,54 +78,35 @@ export default function PaymentModal({ plan, onClose, onError }) {
 
       console.log('Payment details:', { email, amount: plan.price * 100, ref: paymentRef }) // Debug log
 
-      // Initialize Paystack payment
-      const handler = window.PaystackPop.setup({
-        key: 'pk_live_2ba1413aaaf5091188571ea6f87cca34945d943c',
-        email: email,
-        amount: plan.price * 100, // Paystack expects amount in kobo
-        currency: 'NGN',
-        ref: paymentRef,
-        metadata: {
-          plan_id: plan.id,
-          plan_name: plan.name,
-          user_url: userUrl,
-          expiration_date: expirationDate.toISOString(),
-          custom_fields: [
-            {
-              display_name: "Plan Type",
-              variable_name: "plan_type",
-              value: plan.name
-            }
-          ]
-        },
-        callback: async function(response) {
-          console.log('Payment callback received:', response) // Debug log
-          setLoading(true)
-          
-          try {
-            // Save subscription to Firebase
-            const subscriptionData = {
-              email: email,
-              planId: plan.id,
-              planName: plan.name,
-              amount: plan.price,
-              paymentRef: response.reference,
-              userUrl: userUrl,
-              expirationDate: expirationDate,
-              createdAt: new Date(),
-              status: 'active',
-              paystackResponse: response
-            }
+      // Define callback function separately to avoid scope issues
+      const paymentCallback = async (response) => {
+        console.log('Payment callback received:', response) // Debug log
+        setLoading(true)
+        
+        try {
+          // Save subscription to Firebase
+          const subscriptionData = {
+            email: email,
+            planId: plan.id,
+            planName: plan.name,
+            amount: plan.price,
+            paymentRef: response.reference,
+            userUrl: userUrl,
+            expirationDate: expirationDate,
+            createdAt: new Date(),
+            status: 'active',
+            paystackResponse: response
+          }
 
-            console.log('Saving to Firebase:', subscriptionData) // Debug log
-            await addDoc(collection(db, 'subscriptions'), subscriptionData)
+          console.log('Saving to Firebase:', subscriptionData) // Debug log
+          await addDoc(collection(db, 'subscriptions'), subscriptionData)
 
-            // Send confirmation email via Formspree
-            const emailData = {
-              email: email,
-              subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
-              message: `Thank you for subscribing to 2TV ${plan.name} Plan!
-              
+          // Send confirmation email via Formspree
+          const emailData = {
+            email: email,
+            subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
+            message: `Thank you for subscribing to 2TV ${plan.name} Plan!
+            
 Your IPTV Access Details:
 - Plan: ${plan.name}
 - Amount Paid: ₦${plan.price.toLocaleString()}
@@ -146,25 +127,25 @@ Setup Instructions:
 4. Start enjoying your IPTV service!
 
 Thank you for choosing 2TV!`
-            }
+          }
 
-            console.log('Sending email via Formspree...') // Debug log
-            const emailResponse = await fetch('https://formspree.io/f/xblkzybg', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(emailData)
-            })
+          console.log('Sending email via Formspree...') // Debug log
+          const emailResponse = await fetch('https://formspree.io/f/xblkzybg', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emailData)
+          })
 
-            if (emailResponse.ok) {
-              console.log('Email sent successfully') // Debug log
-            } else {
-              console.error('Email sending failed:', emailResponse.status) // Debug log
-            }
+          if (emailResponse.ok) {
+            console.log('Email sent successfully') // Debug log
+          } else {
+            console.error('Email sending failed:', emailResponse.status) // Debug log
+          }
 
-            // Show success message with streaming URL
-            alert(`🎉 Payment Successful!
+          // Show success message with streaming URL
+          alert(`🎉 Payment Successful!
 
 Your IPTV access is now active!
 
@@ -173,22 +154,46 @@ Plan: ${plan.name}
 Expires: ${expirationDate.toLocaleDateString()}
 
 Check your email for detailed setup instructions.`)
-            
-            onClose()
-          } catch (error) {
-            console.error('Error processing payment:', error)
-            alert(`Payment was successful, but there was an error setting up your account. 
+          
+          onClose()
+        } catch (error) {
+          console.error('Error processing payment:', error)
+          alert(`Payment was successful, but there was an error setting up your account. 
 
 Payment Reference: ${response.reference}
 Please contact support with this reference number.`)
-          } finally {
-            setLoading(false)
-          }
-        },
-        onClose: function() {
-          console.log('Payment modal closed') // Debug log
+        } finally {
           setLoading(false)
         }
+      }
+
+      const closeCallback = () => {
+        console.log('Payment modal closed') // Debug log
+        setLoading(false)
+      }
+
+      // Initialize Paystack payment
+      const handler = window.PaystackPop.setup({
+        key: 'pk_live_2ba1413aaaf5091188571ea6f87cca34945d943c',
+        email: email,
+        amount: plan.price * 100, // Paystack expects amount in kobo
+        currency: 'NGN',
+        ref: paymentRef,
+        metadata: {
+          plan_id: plan.id,
+          plan_name: plan.name,
+          user_url: userUrl,
+          expiration_date: expirationDate.toISOString(),
+          custom_fields: [
+            {
+              display_name: "Plan Type",
+              variable_name: "plan_type",
+              value: plan.name
+            }
+          ]
+        },
+        callback: paymentCallback,
+        onClose: closeCallback
       })
 
       console.log('Opening Paystack iframe...') // Debug log
