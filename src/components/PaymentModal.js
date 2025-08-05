@@ -176,8 +176,8 @@ Please contact support with this reference number.`)
 
       console.log('Payment details:', { email, amount: plan.price * 100, ref: paymentRef }) // Debug log
 
-      // Initialize Paystack payment
-      const handler = window.PaystackPop.setup({
+      // Create Paystack configuration object
+      const paystackConfig = {
         key: 'pk_live_2ba1413aaaf5091188571ea6f87cca34945d943c',
         email: email,
         amount: plan.price * 100, // Paystack expects amount in kobo
@@ -187,18 +187,98 @@ Please contact support with this reference number.`)
           plan_id: plan.id,
           plan_name: plan.name,
           user_url: userUrl,
-          expiration_date: expirationDate.toISOString(),
-          custom_fields: [
-            {
-              display_name: "Plan Type",
-              variable_name: "plan_type",
-              value: plan.name
+          expiration_date: expirationDate.toISOString()
+        }
+      }
+
+      // Add callback functions directly to config
+      paystackConfig.callback = function(response) {
+        console.log('Payment successful:', response)
+        setLoading(true)
+        
+        // Process payment success
+        const processPayment = async () => {
+          try {
+            // Save subscription to Firebase
+            const subscriptionData = {
+              email: email,
+              planId: plan.id,
+              planName: plan.name,
+              amount: plan.price,
+              paymentRef: response.reference,
+              userUrl: userUrl,
+              expirationDate: expirationDate,
+              createdAt: new Date(),
+              status: 'active',
+              paystackResponse: response
             }
-          ]
-        },
-        callback: paymentCallback,
-        onClose: closeCallback
-      })
+
+            await addDoc(collection(db, 'subscriptions'), subscriptionData)
+
+            // Send confirmation email
+            await fetch('https://formspree.io/f/xblkzybg', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: email,
+                subject: `2TV Subscription Confirmation - ${plan.name} Plan`,
+                message: `Thank you for subscribing to 2TV ${plan.name} Plan!
+
+Your IPTV Access Details:
+- Plan: ${plan.name}
+- Amount Paid: ₦${plan.price.toLocaleString()}
+- Payment Reference: ${response.reference}
+- Your Streaming URL: ${userUrl}
+- Expires: ${expirationDate.toLocaleDateString()}
+
+Download IPTV Players:
+- VLC Player: https://www.videolan.org/vlc/
+- IPTV Smarters: Available on App Store/Google Play
+- TiviMate: Available on Google Play
+- Perfect Player: Available on App Store/Google Play
+
+Setup Instructions:
+1. Download any of the IPTV players above
+2. Open the app and add a new playlist
+3. Enter your streaming URL: ${userUrl}
+4. Start enjoying your IPTV service!
+
+Thank you for choosing 2TV!`
+              })
+            })
+
+            alert(`🎉 Payment Successful!
+
+Your IPTV access is now active!
+
+Streaming URL: ${userUrl}
+Plan: ${plan.name}
+Expires: ${expirationDate.toLocaleDateString()}
+
+Check your email for detailed setup instructions.`)
+            
+            onClose()
+          } catch (error) {
+            console.error('Error processing payment:', error)
+            alert(`Payment was successful, but there was an error setting up your account. 
+
+Payment Reference: ${response.reference}
+Please contact support with this reference number.`)
+          } finally {
+            setLoading(false)
+          }
+        }
+
+        processPayment()
+      }
+
+      paystackConfig.onClose = function() {
+        console.log('Payment modal closed')
+        setLoading(false)
+      }
+
+      // Initialize Paystack payment
+      const handler = window.PaystackPop.setup(paystackConfig)
 
       console.log('Opening Paystack iframe...') // Debug log
       handler.openIframe()
