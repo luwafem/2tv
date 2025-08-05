@@ -5,7 +5,7 @@ import { db } from '@/lib/firebase'
 import { collection, addDoc } from 'firebase/firestore'
 import { generateUserUrl, getExpirationDate, isValidEmail } from '@/lib/utils.js'
 
-export default function PaymentModal({ plan, onClose }) {
+export default function PaymentModal({ plan, onClose, onError }) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -249,12 +249,19 @@ Please contact support with this reference number.`)
         <button
           onClick={handlePayment}
           disabled={loading || !email || !paystackLoaded}
-          className="w-full bg-black text-white py-4 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-black text-white py-4 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-3"
         >
           {loading ? 'Processing...' : !paystackLoaded ? 'Loading Payment...' : `Pay ₦${plan.price.toLocaleString()}`}
         </button>
 
-        <p className="text-xs text-gray-600 text-center mt-4">
+        <button
+          onClick={onError}
+          className="w-full bg-gray-200 text-black py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors mb-4"
+        >
+          Try Alternative Payment Method
+        </button>
+
+        <p className="text-xs text-gray-600 text-center">
           Secure payment powered by Paystack
         </p>
       </div>
